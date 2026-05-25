@@ -12,7 +12,8 @@ import {
   ArrowRight, 
   RefreshCw,
   Sparkles,
-  Percent
+  Percent,
+  Minus
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -348,8 +349,12 @@ export default function App() {
         </div>
       </header>
 
+      {/* Soft Ambient Background Glows */}
+      <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-[400px] right-1/4 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[180px] pointer-events-none" />
+
       {/* Main container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-12 flex flex-col gap-10">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-12 flex flex-col gap-10 relative z-10">
         
         {/* Intro Hero banner */}
         {!auditResult && (
@@ -388,14 +393,32 @@ export default function App() {
                     <Users className="h-4 w-4 text-teal-400" />
                     <span>Total Team Size</span>
                   </Label>
-                  <Input
-                    id="team-size"
-                    type="number"
-                    min={1}
-                    value={teamSize}
-                    onChange={(e) => setTeamSize(Math.max(1, Number(e.target.value)))}
-                    className="border-slate-800 bg-slate-950 text-white focus:border-teal-500 focus:ring-teal-500/20"
-                  />
+                  <div className="flex items-center h-10 border border-slate-800 bg-slate-950 rounded-xl overflow-hidden focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setTeamSize(Math.max(1, teamSize - 1))}
+                      className="h-full px-3 text-slate-400 hover:text-white hover:bg-slate-900 border-r border-slate-800 rounded-none shrink-0"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      id="team-size"
+                      type="number"
+                      min={1}
+                      value={teamSize}
+                      onChange={(e) => setTeamSize(Math.max(1, Number(e.target.value)))}
+                      className="border-none bg-transparent text-white text-center h-full w-full focus-visible:ring-0 focus-visible:ring-offset-0 text-sm font-semibold"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setTeamSize(teamSize + 1)}
+                      className="h-full px-3 text-slate-400 hover:text-white hover:bg-slate-900 border-l border-slate-800 rounded-none shrink-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2.5">
                   <Label htmlFor="use-case" className="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
@@ -485,26 +508,44 @@ export default function App() {
                         </div>
 
                         {/* Seat Count */}
-                        <div className="sm:col-span-2 space-y-1.5">
+                        <div className="sm:col-span-3 space-y-1.5">
                           <Label className="text-xs font-semibold text-slate-400">Seats</Label>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={row.seats}
-                            onChange={(e) => updateToolRow(row.id, 'seats', Math.max(1, Number(e.target.value)))}
-                            className="border-slate-800 bg-slate-950 text-white text-xs"
-                          />
+                          <div className="flex items-center h-9 border border-slate-800 bg-slate-950 rounded-lg overflow-hidden focus-within:border-teal-500">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => updateToolRow(row.id, 'seats', Math.max(1, row.seats - 1))}
+                              className="h-full px-2 text-slate-400 hover:text-white hover:bg-slate-900 border-r border-slate-800 rounded-none shrink-0"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={row.seats}
+                              onChange={(e) => updateToolRow(row.id, 'seats', Math.max(1, Number(e.target.value)))}
+                              className="border-none bg-transparent text-white text-center h-full w-full focus-visible:ring-0 focus-visible:ring-offset-0 text-xs font-semibold px-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => updateToolRow(row.id, 'seats', row.seats + 1)}
+                              className="h-full px-2 text-slate-400 hover:text-white hover:bg-slate-900 border-l border-slate-800 rounded-none shrink-0"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
 
                         {/* Monthly Spend */}
-                        <div className="sm:col-span-3 space-y-1.5">
+                        <div className="sm:col-span-2 space-y-1.5">
                           <Label className="text-xs font-semibold text-slate-400">Monthly Spend ($)</Label>
                           <Input
                             type="number"
                             min={0}
                             value={row.monthlySpend}
                             onChange={(e) => updateToolRow(row.id, 'monthlySpend', e.target.value)}
-                            className="border-slate-800 bg-slate-950 text-white text-xs"
+                            className="border-slate-800 bg-slate-950 text-white text-xs h-9 focus:border-teal-500 focus:ring-teal-500/20"
                           />
                         </div>
 
