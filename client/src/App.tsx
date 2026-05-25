@@ -151,7 +151,7 @@ export default function App() {
           return res.json();
         })
         .then((data) => {
-          setAuditResult(data);
+          setAuditResult(data.auditResult);
         })
         .catch((err) => {
           setError(err.message || 'Failed to load shared report.');
