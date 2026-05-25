@@ -95,7 +95,13 @@ app.get('/api/pricing', (req, res) => {
 // ── POST: Capture lead and save audit ───────────────────────────────
 app.post('/api/leads', async (req, res) => {
   try {
-    const { email, companyName, role, teamSize, auditResult } = req.body;
+    const { email, companyName, role, teamSize, auditResult, honeypot } = req.body;
+
+    // Honeypot spam abuse protection
+    if (honeypot) {
+      console.log('🤖 Spam bot detected in honeypot!');
+      return res.status(400).json({ error: 'Abuse protection triggered.' });
+    }
 
     if (!email || !teamSize || !auditResult) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -126,7 +132,43 @@ app.post('/api/leads', async (req, res) => {
 
     await newLead.save();
 
-    // In production, you would trigger an email to the user here.
+    // Send transactional email via Resend
+    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your_resend_api_key_here') {
+      try {
+        const { Resend } = require('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        const shareUrl = `${clientUrl}/audit/${shareId}`;
+        const savingsText = auditResult.summary.totalAnnualSavings > 0 
+          ? `You can save up to $${auditResult.summary.totalAnnualSavings.toLocaleString()}/year!`
+          : `Your stack is highly optimized!`;
+
+        await resend.emails.send({
+          from: 'SpendPilot Audits <onboarding@resend.dev>',
+          to: email,
+          subject: `Your AI Spend Audit Report - SpendPilot`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+              <h2 style="color: #14b8a6;">SpendPilot Spend Audit</h2>
+              <p>Hi there,</p>
+              <p>Thanks for auditing your AI software infrastructure using SpendPilot!</p>
+              <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">${savingsText}</h3>
+                <p style="margin-bottom: 0;">We analyzed your team size of <strong>${teamSize}</strong> and found potential monthly savings of <strong>$${auditResult.summary.totalMonthlySavings.toLocaleString()}</strong>.</p>
+              </div>
+              <p>To view your full anonymized audit report and share it with your team, use this private link:</p>
+              <p><a href="${shareUrl}" style="background-color: #14b8a6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">View Audit Report</a></p>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+              <p style="font-size: 12px; color: #64748b;">Powered by SpendPilot & Credex.rocks</p>
+            </div>
+          `
+        });
+        console.log(`✉️ Transactional email sent to ${email}`);
+      } catch (emailErr) {
+        console.error('❌ Failed to send transactional email:', emailErr.message);
+      }
+    }
 
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     res.json({

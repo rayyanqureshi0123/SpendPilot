@@ -130,6 +130,7 @@ export default function App() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [shareableUrl, setShareableUrl] = useState<string | null>(null);
+  const [honeypot, setHoneypot] = useState('');
 
   // Load state from local storage on mount
   useEffect(() => {
@@ -255,7 +256,8 @@ export default function App() {
         companyName,
         role,
         teamSize,
-        auditResult // Send the result to save it to DB
+        auditResult, // Send the result to save it to DB
+        honeypot
       };
 
       const res = await fetch(`${API_URL}/api/leads`, {
@@ -687,6 +689,17 @@ export default function App() {
                     </p>
                     
                     <form onSubmit={submitLead} className="space-y-4 pt-2 text-left">
+                      {/* Honeypot hidden spam/abuse protection */}
+                      <input 
+                        type="text" 
+                        name="username_api_field" 
+                        value={honeypot} 
+                        onChange={(e) => setHoneypot(e.target.value)} 
+                        className="hidden" 
+                        tabIndex={-1} 
+                        autoComplete="off" 
+                      />
+
                       <div className="space-y-1.5">
                         <Label htmlFor="email" className="text-xs font-semibold text-slate-400">Email Address</Label>
                         <Input 
