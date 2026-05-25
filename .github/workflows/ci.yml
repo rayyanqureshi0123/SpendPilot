@@ -46,6 +46,11 @@ jobs:
           cd client
           npm ci
 
+      - name: Run Linter
+        run: |
+          cd client
+          npm run lint
+
       - name: Build Frontend (Verifies Types & Compilation)
         run: |
           cd client

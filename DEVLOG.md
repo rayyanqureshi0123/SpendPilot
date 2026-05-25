@@ -49,48 +49,83 @@ Deploy to Vercel. Polish the UI. Write DEVLOG, REFLECTION, and USER_INTERVIEWS. 
 
 ---
 
-## Day 3 — 2026-05-26
-**Hours worked:** 0
-**What I did:** Day off — final review and submission prep scheduled.
-**What I learned:** —
-**Blockers / what I'm stuck on:** —
-**Plan for tomorrow:** —
+## Day 3 — [YYYY-MM-DD]
+**Hours worked:** [X]
+**What I did:**
+- [Fill in what you did on Day 3]
+
+**What I learned:**
+- [Fill in what you learned on Day 3]
+
+**Blockers / what I'm stuck on:**
+- [Fill in any blockers on Day 3]
+
+**Plan for tomorrow:**
+- [Fill in plan for tomorrow on Day 3]
 
 ---
 
-## Day 4 — 2026-05-27
-**Hours worked:** 0
-**What I did:** Rest day.
-**What I learned:** —
-**Blockers / what I'm stuck on:** —
-**Plan for tomorrow:** —
+## Day 4 — [YYYY-MM-DD]
+**Hours worked:** [X]
+**What I did:**
+- [Fill in what you did on Day 4]
+
+**What I learned:**
+- [Fill in what you learned on Day 4]
+
+**Blockers / what I'm stuck on:**
+- [Fill in any blockers on Day 4]
+
+**Plan for tomorrow:**
+- [Fill in plan for tomorrow on Day 4]
 
 ---
 
-## Day 5 — 2026-05-28
-**Hours worked:** 0
-**What I did:** Rest day.
-**What I learned:** —
-**Blockers / what I'm stuck on:** —
-**Plan for tomorrow:** —
+## Day 5 — [YYYY-MM-DD]
+**Hours worked:** [X]
+**What I did:**
+- [Fill in what you did on Day 5]
+
+**What I learned:**
+- [Fill in what you learned on Day 5]
+
+**Blockers / what I'm stuck on:**
+- [Fill in any blockers on Day 5]
+
+**Plan for tomorrow:**
+- [Fill in plan for tomorrow on Day 5]
 
 ---
 
-## Day 6 — 2026-05-29
-**Hours worked:** 0
-**What I did:** Rest day.
-**What I learned:** —
-**Blockers / what I'm stuck on:** —
-**Plan for tomorrow:** —
+## Day 6 — [YYYY-MM-DD]
+**Hours worked:** [X]
+**What I did:**
+- [Fill in what you did on Day 6]
+
+**What I learned:**
+- [Fill in what you learned on Day 6]
+
+**Blockers / what I'm stuck on:**
+- [Fill in any blockers on Day 6]
+
+**Plan for tomorrow:**
+- [Fill in plan for tomorrow on Day 6]
 
 ---
 
-## Day 7 — 2026-05-30
-**Hours worked:** 0
-**What I did:** Rest day.
-**What I learned:** —
-**Blockers / what I'm stuck on:** —
-**Plan for tomorrow:** —
+## Day 7 — [YYYY-MM-DD]
+**Hours worked:** [X]
+**What I did:**
+- [Fill in what you did on Day 7]
+
+**What I learned:**
+- [Fill in what you learned on Day 7]
+
+**Blockers / what I'm stuck on:**
+- [Fill in any blockers on Day 7]
+
+**Plan for tomorrow:**
+- [Fill in plan for tomorrow on Day 7]
 
 ---
 

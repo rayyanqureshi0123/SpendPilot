@@ -102,26 +102,105 @@ const USE_CASES = [
   { id: "mixed", name: "Mixed / General Productivity" }
 ];
 
+interface Recommendation {
+  type: string;
+  severity: 'high' | 'medium' | 'info';
+  title: string;
+  savingsPerMonth: number;
+  description: string;
+}
+
+interface ToolAudit {
+  toolId: string;
+  toolName: string;
+  currentPlan: string;
+  seats: number;
+  currentSpend: number;
+  recommendedSpend: number;
+  potentialMonthlySavings: number;
+  recommendations: Recommendation[];
+}
+
+interface AuditSummary {
+  totalCurrentSpend: number;
+  totalRecommendedSpend: number;
+  totalMonthlySavings: number;
+  totalAnnualSavings: number;
+  savingsSeverity: 'high' | 'medium' | 'none';
+  showCredexCTA: boolean;
+  aiSummary?: string;
+}
+
+interface AuditResultType {
+  tools: ToolAudit[];
+  summary: AuditSummary;
+  metadata: {
+    teamSize: number;
+    useCase: string;
+    auditedAt: string;
+  };
+}
+
 const LOCAL_STORAGE_KEY = 'spendpilot_form_state';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// Check if current URL is a shared public audit (e.g. /audit/:shareId) on initial load
+const isSharedPath = (() => {
+  const path = window.location.pathname;
+  const match = path.match(/\/audit\/([a-f0-9]+)/i);
+  return !!(match && match[1]);
+})();
+
 export default function App() {
   // ── FORM STATE ──────────────────────────────────────────────────────
-  const [teamSize, setTeamSize] = useState<number>(1);
-  const [useCase, setUseCase] = useState<string>('mixed');
+  const [teamSize, setTeamSize] = useState<number>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.teamSize) return parsed.teamSize;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return 1;
+  });
+
+  const [useCase, setUseCase] = useState<string>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.useCase) return parsed.useCase;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return 'mixed';
+  });
+
   const [userTools, setUserTools] = useState<Array<{
     id: string;
     toolId: string;
     planId: string;
     seats: number;
     monthlySpend: string;
-  }>>([
-    { id: 'initial-1', toolId: 'cursor', planId: 'pro', seats: 1, monthlySpend: '20' }
-  ]);
+  }>>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.userTools && Array.isArray(parsed.userTools)) return parsed.userTools;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [{ id: 'initial-1', toolId: 'cursor', planId: 'pro', seats: 1, monthlySpend: '20' }];
+  });
 
   // ── UI STATE ────────────────────────────────────────────────────────
-  const [isAuditing, setIsAuditing] = useState(false);
-  const [auditResult, setAuditResult] = useState<any>(null);
+  const [isAuditing, setIsAuditing] = useState(isSharedPath);
+  const [auditResult, setAuditResult] = useState<AuditResultType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // ── LEAD CAPTURE STATE ──────────────────────────────────────────────
@@ -132,19 +211,15 @@ export default function App() {
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [shareableUrl, setShareableUrl] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState('');
-  const [isSharedView, setIsSharedView] = useState(false);
+  const [isSharedView, setIsSharedView] = useState(isSharedPath);
 
   // Load state from local storage or load shared audit on mount
   useEffect(() => {
-    // Check if current URL is a shared public audit (e.g. /audit/:shareId)
     const path = window.location.pathname;
     const match = path.match(/\/audit\/([a-f0-9]+)/i);
 
     if (match && match[1]) {
       const shareId = match[1];
-      setIsSharedView(true);
-      setIsAuditing(true);
-      setAuditResult(null); // Clear any previous audit results
 
       fetch(`${API_URL}/api/audit/${shareId}`)
         .then((res) => {
@@ -160,18 +235,6 @@ export default function App() {
         .finally(() => {
           setIsAuditing(false);
         });
-    }
-
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.teamSize) setTeamSize(parsed.teamSize);
-        if (parsed.useCase) setUseCase(parsed.useCase);
-        if (parsed.userTools && Array.isArray(parsed.userTools)) setUserTools(parsed.userTools);
-      } catch (e) {
-        console.error("Failed to parse saved state", e);
-      }
     }
   }, []);
 
@@ -205,7 +268,7 @@ export default function App() {
   };
 
   // Update specific field in a tool row
-  const updateToolRow = (id: string, field: string, value: any) => {
+  const updateToolRow = (id: string, field: string, value: string | number) => {
     setUserTools(userTools.map(row => {
       if (row.id !== id) return row;
 
@@ -213,7 +276,7 @@ export default function App() {
 
       // Reset plan and spend if tool changes
       if (field === 'toolId') {
-        const newTool = value as keyof typeof TOOLS_CONFIG;
+        const newTool = value as string as keyof typeof TOOLS_CONFIG;
         updated.planId = TOOLS_CONFIG[newTool].plans[0].id;
         const basePrice = TOOLS_CONFIG[newTool].plans[0].price;
         updated.monthlySpend = (basePrice * row.seats).toString();
@@ -225,7 +288,7 @@ export default function App() {
         const plan = TOOLS_CONFIG[tool].plans.find(p => p.id === (field === 'planId' ? value : row.planId));
         const seatsCount = field === 'seats' ? value : row.seats;
         if (plan) {
-          updated.monthlySpend = (plan.price * seatsCount).toString();
+          updated.monthlySpend = (plan.price * Number(seatsCount)).toString();
         }
       }
 
@@ -265,8 +328,12 @@ export default function App() {
       // Reset lead state on new audit run
       setLeadCaptured(false);
       setShareableUrl(null);
-    } catch (err: any) {
-      setError(err.message || 'Connecting to backend failed. Make sure your server is running.');
+      
+      // Smooth scroll to top to see results
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      const errorObj = err as Error;
+      setError(errorObj.message || 'Connecting to backend failed. Make sure your server is running.');
     } finally {
       setIsAuditing(false);
     }
@@ -304,9 +371,10 @@ export default function App() {
         // Fallback local share url if backend doesn't return one
         setShareableUrl(`${window.location.origin}/audit/${data.auditId || Math.random().toString(36).substring(7)}`);
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Failed to save audit report.');
+    } catch (err) {
+      const errorObj = err as Error;
+      console.error(errorObj);
+      setError(errorObj.message || 'Failed to save audit report.');
     } finally {
       setIsSubmittingLead(false);
     }
@@ -320,6 +388,9 @@ export default function App() {
     } else {
       setAuditResult(null);
     }
+    
+    // Smooth scroll to top on back transition
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -681,7 +752,7 @@ export default function App() {
             <div className="space-y-5">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Per-Tool Breakdown</h3>
               
-              {auditResult.tools.map((tool: any, idx: number) => {
+              {auditResult.tools.map((tool, idx) => {
                 return (
                   <Card key={idx} className="border-slate-800 bg-slate-900">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -700,7 +771,7 @@ export default function App() {
                       {/* Recommendations block */}
                       {tool.recommendations.length > 0 ? (
                         <div className="space-y-3 pt-3 border-t border-slate-800/60">
-                          {tool.recommendations.map((rec: any, rIdx: number) => {
+                          {tool.recommendations.map((rec, rIdx) => {
                             const isHigh = rec.severity === 'high';
                             const isMed = rec.severity === 'medium';
                             const isAlt = rec.type === 'alternative';

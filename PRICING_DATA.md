@@ -31,7 +31,7 @@ All pricing details used in the SpendPilot Audit Engine are verified as of May 2
 ## ChatGPT (OpenAI)
 *   **ChatGPT Free**: $0/user/month — [openai.com/chatgpt/pricing](https://openai.com/chatgpt/pricing) — verified 2026-05-24
 *   **ChatGPT Plus**: $20/user/month — [openai.com/chatgpt/pricing](https://openai.com/chatgpt/pricing) — verified 2026-05-24
-*   **ChatGPT Business**: $25/user/month (monthly) or $20/user/month (annual) — [openai.com/chatgpt/pricing](https://openai.com/chatgpt/pricing) — verified 2026-05-24
+*   **ChatGPT Team**: $25/user/month (monthly) or $20/user/month (annual) — [openai.com/chatgpt/pricing](https://openai.com/chatgpt/pricing) — verified 2026-05-24
 *   **ChatGPT Enterprise**: Custom (base estimate $60/seat) — [openai.com/chatgpt/pricing](https://openai.com/chatgpt/pricing) — verified 2026-05-24
 
 ## OpenAI API
