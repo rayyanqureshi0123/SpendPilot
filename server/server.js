@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const { runAudit } = require('./engine/auditEngine');
+const { generatePersonalizedSummary } = require('./services/aiService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,7 +18,7 @@ app.get('/', (req, res) => {
 });
 
 // ── CORE: Run an AI spend audit ─────────────────────────────────────
-app.post('/api/audit', (req, res) => {
+app.post('/api/audit', async (req, res) => {
   try {
     const { tools, teamSize, useCase } = req.body;
 
@@ -44,6 +45,9 @@ app.post('/api/audit', (req, res) => {
 
     // Run the audit engine
     const result = runAudit({ tools, teamSize, useCase });
+
+    // Generate the personalized summary via LLM (or fallback)
+    result.summary.aiSummary = await generatePersonalizedSummary(result);
 
     res.json(result);
   } catch (err) {
