@@ -131,9 +131,36 @@ export default function App() {
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [shareableUrl, setShareableUrl] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState('');
+  const [isSharedView, setIsSharedView] = useState(false);
 
-  // Load state from local storage on mount
+  // Load state from local storage or load shared audit on mount
   useEffect(() => {
+    // Check if current URL is a shared public audit (e.g. /audit/:shareId)
+    const path = window.location.pathname;
+    const match = path.match(/\/audit\/([a-f0-9]+)/i);
+
+    if (match && match[1]) {
+      const shareId = match[1];
+      setIsSharedView(true);
+      setIsAuditing(true);
+      setAuditResult(null); // Clear any previous audit results
+
+      fetch(`${API_URL}/api/audit/${shareId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error('Shared audit report not found.');
+          return res.json();
+        })
+        .then((data) => {
+          setAuditResult(data);
+        })
+        .catch((err) => {
+          setError(err.message || 'Failed to load shared report.');
+        })
+        .finally(() => {
+          setIsAuditing(false);
+        });
+    }
+
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       try {
@@ -278,11 +305,19 @@ export default function App() {
       }
     } catch (err: any) {
       console.error(err);
-      // Local fallback for demo if API endpoint is not ready yet
-      setLeadCaptured(true);
-      setShareableUrl(`${window.location.origin}/audit/${Math.random().toString(36).substring(7)}`);
+      setError(err.message || 'Failed to save audit report.');
     } finally {
       setIsSubmittingLead(false);
+    }
+  };
+
+  const handleGoBack = () => {
+    if (isSharedView) {
+      setIsSharedView(false);
+      setAuditResult(null);
+      window.history.pushState({}, '', '/');
+    } else {
+      setAuditResult(null);
     }
   };
 
@@ -528,10 +563,10 @@ export default function App() {
             <div className="flex items-center justify-between">
               <Button 
                 variant="ghost" 
-                onClick={() => setAuditResult(null)}
+                onClick={handleGoBack}
                 className="text-slate-400 hover:text-white"
               >
-                ← Edit Stack
+                {isSharedView ? "← Run New Audit" : "← Edit Stack"}
               </Button>
               <span className="text-xs text-slate-500">Audited at {new Date(auditResult.metadata.auditedAt).toLocaleTimeString()}</span>
             </div>
@@ -681,7 +716,20 @@ export default function App() {
               )}
               
               <CardContent className="p-8 space-y-6">
-                {!leadCaptured ? (
+                {isSharedView ? (
+                  <div className="max-w-md mx-auto space-y-5 text-center">
+                    <h3 className="text-xl font-bold text-white">How optimized is your own stack?</h3>
+                    <p className="text-slate-400 text-sm">
+                      This is an anonymized shared audit report. Analyze your company's own Cursor, ChatGPT, Claude, and API costs in 60 seconds.
+                    </p>
+                    <Button 
+                      onClick={handleGoBack}
+                      className="w-full bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-400 hover:to-emerald-300 text-slate-950 font-bold py-4.5 rounded-xl shadow-lg shadow-teal-500/10 text-sm"
+                    >
+                      Run Your Free Audit
+                    </Button>
+                  </div>
+                ) : !leadCaptured ? (
                   <div className="max-w-md mx-auto space-y-5 text-center">
                     <h3 className="text-xl font-bold text-white">Save your report & unlock savings</h3>
                     <p className="text-slate-400 text-sm">
