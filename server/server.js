@@ -143,20 +143,27 @@ app.post('/api/leads', async (req, res) => {
 
     await newLead.save();
 
-    // Send transactional email via Resend
-    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your_resend_api_key_here') {
+    // Send transactional email via Nodemailer (Gmail SMTP)
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
       try {
-        const { Resend } = require('resend');
-        const resend = new Resend(process.env.RESEND_API_KEY);
+        const nodemailer = require('nodemailer');
         
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD,
+          },
+        });
+
         const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
         const shareUrl = `${clientUrl}/audit/${shareId}`;
         const savingsText = auditResult.summary.totalAnnualSavings > 0 
           ? `You can save up to $${auditResult.summary.totalAnnualSavings.toLocaleString()}/year!`
           : `Your stack is highly optimized!`;
 
-        await resend.emails.send({
-          from: 'SpendPilot Audits <onboarding@resend.dev>',
+        const mailOptions = {
+          from: `SpendPilot Audits <${process.env.GMAIL_USER}>`,
           to: email,
           subject: `Your AI Spend Audit Report - SpendPilot`,
           html: `
@@ -174,11 +181,15 @@ app.post('/api/leads', async (req, res) => {
               <p style="font-size: 12px; color: #64748b;">Powered by SpendPilot & Credex.rocks</p>
             </div>
           `
-        });
-        console.log(`✉️ Transactional email sent to ${email}`);
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✉️ Email sent to ${email} — MessageId: ${info.messageId}`);
       } catch (emailErr) {
-        console.error('❌ Failed to send transactional email:', emailErr.message);
+        console.error('❌ Failed to send email:', emailErr.message);
       }
+    } else {
+      console.log('⚠️ GMAIL_USER / GMAIL_APP_PASSWORD not set. Skipping email.');
     }
 
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';

@@ -6,12 +6,6 @@
 
 ---
 
-## Screenshots
-
-> _Screenshots to be added after deployment_
-
----
-
 ## Quick Start
 
 ```bash
